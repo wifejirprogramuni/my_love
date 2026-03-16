@@ -9,9 +9,6 @@ export default function RSVPForm() {
   const [errorMessage, setErrorMessage] = useState('');
   const sectionRef = useRef<HTMLElement>(null);
 
-  const BOT_TOKEN = '8751207557:AAH-qEn_lZ8KOXVjKvhepvBrhNKi0Z9jSdQ';
-  const CHAT_ID = '8751207557';
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -50,44 +47,36 @@ export default function RSVPForm() {
     setErrorMessage('');
     setSubmitStatus('idle');
 
-    const now = new Date();
-    const dateString = now.toLocaleString('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    const dishEmoji = dish === 'salmon' ? '🐟' : '🥩';
-    const dishName = dish === 'salmon' ? 'Стейк из лосося' : 'Говяжьи медальоны';
-
-    const message = `📩 Новая заявка со свадьбы!\n👤 Имя: ${name}\n${dishEmoji} Горячее: ${dishName}\n📅 Отправлено: ${dateString}`;
-
     try {
-      const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: message,
-          parse_mode: 'HTML',
-        }),
-      });
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/send-telegram-notification`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+          },
+          body: JSON.stringify({
+            name,
+            dish,
+          }),
+        }
+      );
 
       const data = await response.json();
 
-      if (data.ok) {
+      if (response.ok && data.success) {
         setSubmitStatus('success');
         setName('');
         setDish('');
       } else {
-        throw new Error(data.description || 'Ошибка отправки');
+        throw new Error(data.error || 'Ошибка отправки');
       }
     } catch (error) {
-      console.error('Error sending to Telegram:', error);
+      console.error('Error sending form:', error);
       setSubmitStatus('error');
       setErrorMessage('Не удалось отправить форму. Попробуйте ещё раз.');
     } finally {
