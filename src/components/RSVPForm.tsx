@@ -186,7 +186,7 @@ export default function RSVPForm() {
                     className="w-5 h-5 mr-3"
                     disabled={isSubmitting}
                   />
-                  <span className="text-lg">🐟 Стейк из лосося</span>
+                  <span className="text-lg"> Стейк из лосося</span>
                 </label>
 
                 <label
@@ -205,7 +205,7 @@ export default function RSVPForm() {
                     className="w-5 h-5 mr-3"
                     disabled={isSubmitting}
                   />
-                  <span className="text-lg">🥩 Говяжьи медальоны</span>
+                  <span className="text-lg"> Говяжьи медальоны</span>
                 </label>
               </div>
             </div>
