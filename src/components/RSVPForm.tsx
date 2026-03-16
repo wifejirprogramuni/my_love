@@ -18,11 +18,9 @@ export default function RSVPForm() {
       },
       { threshold: 0.2 }
     );
-
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
-
     return () => {
       if (sectionRef.current) {
         observer.unobserve(sectionRef.current);
@@ -37,7 +35,6 @@ export default function RSVPForm() {
       setErrorMessage('Пожалуйста, введите ваше имя');
       return;
     }
-
     if (!dish) {
       setErrorMessage('Пожалуйста, выберите блюдо');
       return;
@@ -48,47 +45,40 @@ export default function RSVPForm() {
     setSubmitStatus('idle');
 
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const formData = new FormData();
+      formData.append('access_key', '6d7628d8-398e-43c4-a1ce-7fccfe926ec2');
+      formData.append('name', name.trim());
+      formData.append('dish', dish === 'salmon' ? 'Стейк из лосося' : 'Говяжьи медальоны');
+      formData.append('subject', 'Новый RSVP со свадебного сайта');
+      formData.append('from_name', 'Свадебный сайт');
 
-      const response = await fetch(
-        `${supabaseUrl}/functions/v1/send-telegram-notification`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${supabaseAnonKey}`,
-          },
-          body: JSON.stringify({
-            name,
-            dish,
-          }),
-        }
-      );
+      // Опционально: если хочешь, чтобы в письме был reply-to на email гостя — добавь поле email в форму позже
+
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData,  // FormData автоматически ставит правильный Content-Type multipart/form-data
+      });
 
       const data = await response.json();
 
-      if (response.ok && data.success) {
+      if (data.success) {
         setSubmitStatus('success');
         setName('');
         setDish('');
       } else {
-        throw new Error(data.error || 'Ошибка отправки');
+        throw new Error(data.message || 'Ошибка отправки');
       }
     } catch (error) {
       console.error('Error sending form:', error);
       setSubmitStatus('error');
-      setErrorMessage('Не удалось отправить форму. Попробуйте ещё раз.');
+      setErrorMessage('Не удалось отправить. Попробуйте ещё раз или проверьте соединение.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <section
-      ref={sectionRef}
-      className="py-20 px-4 bg-white"
-    >
+    <section ref={sectionRef} className="py-20 px-4 bg-white">
       <div className="max-w-2xl mx-auto">
         <h2
           className={`font-[var(--font-serif)] text-4xl md:text-5xl font-bold text-center mb-12 transition-all duration-600 ${
@@ -123,10 +113,7 @@ export default function RSVPForm() {
             }`}
             style={{ transitionDelay: '0.2s' }}
           >
-            <div
-              className="transition-all duration-600"
-              style={{ transitionDelay: '0.1s' }}
-            >
+            <div className="transition-all duration-600" style={{ transitionDelay: '0.1s' }}>
               <label
                 htmlFor="name"
                 className="block text-lg font-medium mb-2"
@@ -151,10 +138,7 @@ export default function RSVPForm() {
               />
             </div>
 
-            <div
-              className="transition-all duration-600"
-              style={{ transitionDelay: '0.2s' }}
-            >
+            <div className="transition-all duration-600" style={{ transitionDelay: '0.2s' }}>
               <label className="block text-lg font-medium mb-4" style={{ color: 'var(--color-text)' }}>
                 Что предпочитаете на горячее?
               </label>
@@ -175,7 +159,7 @@ export default function RSVPForm() {
                     className="w-5 h-5 mr-3"
                     disabled={isSubmitting}
                   />
-                  <span className="text-lg"> Стейк из лосося</span>
+                  <span className="text-lg">Стейк из лосося</span>
                 </label>
 
                 <label
@@ -194,7 +178,7 @@ export default function RSVPForm() {
                     className="w-5 h-5 mr-3"
                     disabled={isSubmitting}
                   />
-                  <span className="text-lg"> Говяжьи медальоны</span>
+                  <span className="text-lg">Говяжьи медальоны</span>
                 </label>
               </div>
             </div>
@@ -233,7 +217,6 @@ export default function RSVPForm() {
           25% { transform: translateX(-10px); }
           75% { transform: translateX(10px); }
         }
-
         .animate-shake {
           animation: shake 0.3s ease-out;
         }
